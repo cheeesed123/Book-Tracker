@@ -22,3 +22,5 @@ If you edit the CSV, it doesn't care. This program was made as a fun project, mo
 * It has an installer.
 
 If you have any questions, you can reach out to me at **olliessmith2910@gmail.com**.
+
+Book Tracker V3.0
