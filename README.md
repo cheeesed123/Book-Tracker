@@ -24,3 +24,6 @@ If you edit the CSV, it doesn't care. This program was made as a fun project, mo
 If you have any questions, you can reach out to me at **olliessmith2910@gmail.com**.
 
 Book Tracker V3.0
+
+## Install
+You can use the `.exe` installer or clone the project to your desired location with git. If you're on a system that can't run `.bat` or `.exe` files, you can use the `runMe.sh` bash script instead. 
