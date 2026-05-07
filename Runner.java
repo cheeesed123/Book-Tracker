@@ -1,13 +1,14 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class Runner {
@@ -42,9 +43,7 @@ public class Runner {
         try {
             Files.createFile(Path.of("lib", "books.csv"));
             Path path2 = Paths.get("lib", "books.csv");
-            try (FileWriter writer = new FileWriter(path2.toString())) {
-                writer.write("ID,Title,Author,Series,Pages,PagesDone\n");
-            }
+            Files.write(path2, "ID,Title,Author,Series,Pages,PagesDone\n".getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             System.out.println("An error occurred while creating the file.");
             success = false;
@@ -80,20 +79,19 @@ public class Runner {
     }
     //attempts to take the data in the ArrayList and convert it to the csv.
     private static void loadCSV() {
-        try (FileWriter writer = new FileWriter(path.toString())) {
-            //reset csv
-            writer.flush();
-            writer.write("ID,Title,Author,Series,Pages,PagesDone\n");
-            for (int i = 0; i < books.size(); i++) {
-                long bookID = books.get(i).getID();
-                String title = books.get(i).getTitle();
-                String author = books.get(i).getAuthor();
-                String series = books.get(i).getSeries();
-                int pages = books.get(i).getPages();
-                int pagesDone = books.get(i).getPagesDone();
-                writer.write(bookID + "," + title + "," + author + "," + series + "," + pages + "," + pagesDone + "\n");
-            }
-            writer.close();
+        List<String> lines = new ArrayList<>();
+        lines.add("ID,Title,Author,Series,Pages,PagesDone");
+        for (int i = 0; i < books.size(); i++) {
+            long bookID = books.get(i).getID();
+            String title = books.get(i).getTitle();
+            String author = books.get(i).getAuthor();
+            String series = books.get(i).getSeries();
+            int pages = books.get(i).getPages();
+            int pagesDone = books.get(i).getPagesDone();
+            lines.add(bookID + "," + title + "," + author + "," + series + "," + pages + "," + pagesDone);
+        }
+        try {
+            Files.write(path, lines, StandardCharsets.UTF_8);
         } catch (IOException e) {
             System.out.println("An error occurred while resetting the file.");
         }
@@ -229,8 +227,8 @@ public class Runner {
                     return;
                 }
                 books.clear();
-                try (FileWriter writer = new FileWriter(path.toString())) {
-                    writer.write("ID,Title,Author,Series,Pages,PagesDone\n");
+                try {
+                    Files.write(path, "ID,Title,Author,Series,Pages,PagesDone\n".getBytes(StandardCharsets.UTF_8));
                 } catch (IOException e) {
                     System.out.println("An error occurred while resetting the file.");
                 }
@@ -588,6 +586,7 @@ public class Runner {
                 [A]uthor
                 [S]eries
                 [P]ages
+                [D]elete
                 Use other edit for pages done
                 [Q]uit
                 """;
@@ -611,9 +610,10 @@ public class Runner {
         }
         char option = ' ';
         //define which characteristic
-        String prompt;
+        String prompt; // Initialize prompt to avoid uninitialized variable error
+        String temp;
         while (true) {
-            String temp = Word.nextline();
+            temp = Word.nextline();
             //blank protection
             if (!temp.isBlank())
                 option = temp.toLowerCase().charAt(0);
@@ -622,7 +622,7 @@ public class Runner {
                 continue;
             }
             //incorrect option protection
-            if (!"taspq".contains(String.valueOf(option))) {
+            if (!"taspdq".contains(String.valueOf(option))) {
                 System.out.println("Invalid choice. Please try again.");
                 continue;
             }
@@ -632,7 +632,18 @@ public class Runner {
             prompt = "New " + wordTypes[find(wordTypes, option)] + ": ";
         else if (option == 'p')
             prompt = "New pages value: ";
-        else {
+        else if (option == 'd') {
+            boolean delete = Word.nextCharToBoolean("Are you sure? [Y/N]\n", 'y', 'n');
+            if (delete) {
+                System.out.println("Okay, deleting \"" + books.get(book).getTitle() + "\"...");
+                books.get(book).delete();
+                books.remove(book);
+                return;
+            } else {
+                System.out.println("Okay, returning to menu.");
+                return;
+            }
+        } else {
             System.out.println("Returning to menu.");
             return;
         }

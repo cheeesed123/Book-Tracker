@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class Book {
@@ -40,8 +41,9 @@ public class Book {
         this.pagesDone = pagesDone;
     }
     private void toCSV(long ID, String title, String author, String series, int pages, int pagesDone) {
-        try (FileWriter writer = new FileWriter(path.toString(), true)) {
-            writer.write(ID + "," + title + "," + author + "," + series + "," + pages + "," + pagesDone + "\n");
+        try {
+            String line = ID + "," + title + "," + author + "," + series + "," + pages + "," + pagesDone + "\n";
+            Files.write(path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } catch (IOException e) {
             System.out.println("An error occurred while writing to the file.");
         }
@@ -83,6 +85,22 @@ public class Book {
             }
         } catch (IOException e) {
             System.out.println("An error occurred while updating the file: " + e.getMessage());
+        }
+    }
+    public void delete() {
+        try {
+            List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+            // Remove lines that match this book's ID (skip header)
+            lines.removeIf(line -> {
+                if (line.trim().equalsIgnoreCase("ID,Title,Author,Series,Pages,PagesDone")) {
+                    return false; // Don't remove header
+                }
+                return String.valueOf(ID).equals(line.substring(0,line.indexOf(",")));
+            });
+            // Write the modified content back to the file
+            Files.write(path, lines, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.out.println("An error occurred while deleting from the file: " + e.getMessage());
         }
     }
     public void setPagesDone(int pagesDone) {
