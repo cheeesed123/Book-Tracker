@@ -1,4 +1,4 @@
-import java.io.File;
+//import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,20 +9,72 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
-
+/** The runner class. The code starts here through {@link #main(String[])} 
+ * @see #main(String[])
+ * @see #choice()
+*/
 public class Runner {
     //path to csv
-    public static final Path path = Paths.get("lib", "books.csv");
-    //array list
+    
+    
+    /**The arrayList that contains all of the {@link Book} objects. */
     public static ArrayList<Book> books = new ArrayList<>();
     //ID, its value varies a lot
     private static long ID = 0;
-    //main
+    /** The {@link #main} method.
+     * All it actually does is ensure there's a {@code books.csv} file to be found,
+     * and then goes to {@link #choice()}. {@link #choice()} cannot be escaped, except through {@link #Quit()} 
+     * @see choice()*/
     public static void main(String[] args){
         System.out.println("Welcome to book tracker.");
+        loadBooks();
+        choice();
+    }
+    /**makes a new {@code books.csv} file*/
+    private static void makeNewFile() {
+        boolean success = true;
         try {
-            loadBooks();
+            Files.createFile(Path.of("lib", "books.csv"));
+            Path path2 = Paths.get("lib", "books.csv");
+            Files.write(path2, (Word.CSVHEADER + "\n").getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            System.out.println("An error occurred while creating the file.");
+            success = false;
+        } finally {
+            System.out.println("File " + (success ? "created, " : "failed, ") + "restarting...");
+            Restart();
+        }
+    }
+    /**attempts to take the data in the csv and convert it to an {@link ArrayList}.
+     * @throws FileNotFoundException
+     * @throws NumberFormatException
+     * This is the only method to throw something.
+    */
+    private static void loadBooks() {
+        try {
+            List<String> lines = Files.readAllLines(Word.path);
+            for (String line : lines) {
+                if (line.trim().equalsIgnoreCase(Word.CSVHEADER) || line.isBlank())
+                    continue;
+                String[] parts = line.split(",", Word.CSVVARCOUNT);
+                if (parts.length < 3)
+                    continue;
+                ID = Integer.parseInt(parts[0].trim());
+                String title = parts[1].trim();
+                String author = parts[2].trim();
+                String series = parts[3].trim();
+                int pages = Integer.parseInt(parts[4].trim());
+                int pagesDone = Integer.parseInt(parts[5].trim());
+                String dateCreated = parts[6].trim();
+                String dateFinished = parts[7].trim();
+                String note = parts[8].trim();
+                // if (pages == pagesDone)                      This feature has been removed.
+                //     continue; //remove complete from database, leave in CSV for storage.
+                books.add(new Book(ID, title, author, series, pages, pagesDone, dateCreated, dateFinished, note));
+            }
+            if (books.isEmpty()) {
+                System.out.println("Your books are either empty, or all complete. Time to add more!");
+            }
         } catch (FileNotFoundException e) {
             System.err.println("Error has to do with filename/lack of file: " + e.getMessage());
             boolean createFile = Word.nextCharToBoolean("Would you like to create a new file? [Y/N]\n", 'y', 'n');
@@ -32,55 +84,16 @@ public class Runner {
                 System.out.println("Okay, goodbye.");
                 System.exit(0);
             }
-        } catch (NumberFormatException e) {
-            System.out.println("Error with ID or pages, check CSV.");
-        }
-        choice();
-    }
-    //makes a new books.csv file
-    private static void makeNewFile() {
-        boolean success = true;
-        try {
-            Files.createFile(Path.of("lib", "books.csv"));
-            Path path2 = Paths.get("lib", "books.csv");
-            Files.write(path2, "ID,Title,Author,Series,Pages,PagesDone\n".getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            System.out.println("An error occurred while creating the file.");
-            success = false;
-        } finally {
-            System.out.println("File " + (success ? "created, " : "failed, ") + "restarting...");
-            Restart();
+            System.out.println("An error occurred while writing to the file.");
+        } catch (NumberFormatException e) {
+            System.out.println("An error occurred while trying to parse a number, check the CSV.");
         }
     }
-    //attempts to take the data in the csv and convert it to an ArrayList.
-    private static void loadBooks() throws FileNotFoundException, NumberFormatException {
-        try (Scanner fileScanner = new Scanner(new File(path.toString()))) {
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine();
-                if (line.trim().equalsIgnoreCase("ID,Title,Author,Series,Pages,PagesDone"))
-                    continue;
-                String[] parts = line.split(",", 6);
-                if (parts.length < 3)
-                    continue;
-                ID = Integer.parseInt(parts[0].trim());
-                String title = parts[1].trim();
-                String author = parts[2].trim();
-                String series = parts[3].trim();
-                int pages = Integer.parseInt(parts[4].trim());
-                int pagesDone = parts.length >= 6 ? Integer.parseInt(parts[5].trim()) : 0;
-                if (pages == pagesDone)
-                    continue; //remove complete from database, leave in CSV for storage.
-                books.add(new Book(ID, title, author, series, pages, pagesDone));
-            }
-            if (books.isEmpty()) {
-                System.out.println("Your books are either empty, or all complete. Time to add more!");
-            }
-        }
-    }
-    //attempts to take the data in the ArrayList and convert it to the csv.
+    /**attempts to take the data in the {@link ArrayList} and convert it to the csv.*/
     private static void loadCSV() {
-        List<String> lines = new ArrayList<>();
-        lines.add("ID,Title,Author,Series,Pages,PagesDone");
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add(Word.CSVHEADER);
         for (int i = 0; i < books.size(); i++) {
             long bookID = books.get(i).getID();
             String title = books.get(i).getTitle();
@@ -88,15 +101,18 @@ public class Runner {
             String series = books.get(i).getSeries();
             int pages = books.get(i).getPages();
             int pagesDone = books.get(i).getPagesDone();
-            lines.add(bookID + "," + title + "," + author + "," + series + "," + pages + "," + pagesDone);
+            String dateCreated = books.get(i).getDateCreated();
+            String dateFinished = books.get(i).getDateFinished();
+            String note = books.get(i).getNote();
+            lines.add(String.join(",", String.valueOf(bookID), title, author, series, String.valueOf(pages), String.valueOf(pagesDone), dateCreated, dateFinished, note));
         }
         try {
-            Files.write(path, lines, StandardCharsets.UTF_8);
+            Files.write(Word.path, lines, StandardCharsets.UTF_8);
         } catch (IOException e) {
             System.out.println("An error occurred while resetting the file.");
         }
     }
-    //main menu, shouldnt be possible to escape.
+    /**main menu, shouldnt be possible to escape.*/
     private static void choice() {
         //since its the main menu, we can just put it in a loop.
         while (true) {
@@ -153,12 +169,12 @@ public class Runner {
             }
         }
     }
-    //quits
+    /**quits*/
     private static void Quit() {
         System.out.println("Goodbye!");
         System.exit(0);
     }
-    //restarts via BAT/BASH file
+    /**restarts via BAT/BASH file. Should be {@code runMe.bat} or {@code runMe.sh}*/
     private static void Restart() {
         boolean restart = Word.nextCharToBoolean("Are you sure? [Y/N]\n", 'y', 'n');
         if (restart) {
@@ -189,7 +205,7 @@ public class Runner {
             System.err.println("An error occurred while restarting the program." + e.getMessage());
         }
     }
-    //a mini menu for reset functionalities.
+    /**a mini menu for reset functionalities.*/
     private static void ResetsAndReloads() {
         String menu = """
                 Resets:
@@ -228,7 +244,7 @@ public class Runner {
                 }
                 books.clear();
                 try {
-                    Files.write(path, "ID,Title,Author,Series,Pages,PagesDone\n".getBytes(StandardCharsets.UTF_8));
+                    Files.write(Word.path, (Word.CSVHEADER + "\n").getBytes(StandardCharsets.UTF_8));
                 } catch (IOException e) {
                     System.out.println("An error occurred while resetting the file.");
                 }
@@ -240,11 +256,7 @@ public class Runner {
                 loadCSV();
                 //reset arrayList
                 books.clear();
-                try {
-                    loadBooks();
-                } catch (FileNotFoundException e) {
-                    Word.FatalError();
-                }
+                loadBooks();
                 System.out.println("Both reloaded.");
             }
             case 'c' -> {
@@ -253,18 +265,16 @@ public class Runner {
             }
             case 'a' -> {
                 books.clear();
-                try {
-                    loadBooks();
-                } catch (FileNotFoundException e) {
-                    Word.FatalError();
-                }
+                loadBooks();
                 System.out.println("Array reset.");
             }
         }
         System.out.println("Hit enter to continue...");
         Word.nextline();
     }
-    //time calcs and such, this is the main time method.
+    /**time calcs and such, this is the main time method. user chooses a number from a list,
+     * its tested if its a real number. If it is, make it book.
+     * if book also matches parameters, the code exits the loop.*/
     private static void Time() {
         int a = ListB();
         if (a == -1)
@@ -274,7 +284,7 @@ public class Runner {
         //if book also matches parameters, the code exits the loop.
         while (true) {
             if (a == -1) {
-                book = Word.nextInt("","Enter a number. Please try again.", -1, books.size() + 1) - 1;
+                book = Word.nextInt("", "Enter a number. Please try again.", -1, books.size() + 1) - 1;
             } else
                 book = a;
 
@@ -292,7 +302,9 @@ public class Runner {
         System.out.println("Hit enter to continue...");
         Word.nextline();
     }
-    //validates the due date and prepares it for use
+    /**validates the due date and prepares it for use.
+     * This is only used once, to make sure the user types a correct date.
+     * Uses {@link LocalDate}*/
     private static LocalDate validateDate() {
         int month, day, year;
         LocalDate dueDate;
@@ -300,11 +312,11 @@ public class Runner {
         while (true) {
             System.out.print("Due date (m/d/y): ");
             String due = Word.nextline().trim();
-                String[] parts = due.split("/", 3);
-                if (parts.length != 3) {
-                    System.out.println("Invalid date format. Please try again.");
-                    continue;
-                }
+            String[] parts = due.split("/", 3);
+            if (parts.length != 3) {
+                System.out.println("Invalid date format. Please try again.");
+                continue;
+            }
             //safety check, takes date, splits it into parts, checks they can be numbers, then does math.
             for (String part : parts) {
                 if (!Word.isDigit(part)) {
@@ -333,25 +345,30 @@ public class Runner {
                 continue;
             }
                 break;
-                // these safety checks have now ensured this is a valid date.
+                //these safety checks have now ensured this is a valid date.
         }
         return dueDate;
     }
-    //does the calcs for Time()
+    /**does the calcs for {@link #Time()}. This method finds the amount of pages left, and divides it by the amount of days between two dates.
+     * @param book the index of the book, will be found in {@link #books}.
+     * @param countWeekend a boolean, is true if weekend should be counted when doing day calculations.
+     * @see #Time()
+     * @see #validateDate()
+    */
     private static double timeCalcs(int book, boolean countWeekend) {
-        LocalDate now = LocalDate.now(); //                                             current time
-        LocalDate dueDate = validateDate(); //                                          time in the future
-        int pagesLeft = books.get(book).getPages() - books.get(book).getPagesDone(); // pages left
-        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(now, dueDate); // days between the two dates
-        long weeks = java.time.temporal.ChronoUnit.WEEKS.between(now, dueDate); //      weeks between the two dates
+        LocalDate now = LocalDate.now(); //                                            current time
+        LocalDate dueDate = validateDate(); //                                         time in the future
+        int pagesLeft = books.get(book).getPages() - books.get(book).getPagesDone(); //pages left
+        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(now, dueDate); //days between the two dates
+        long weeks = java.time.temporal.ChronoUnit.WEEKS.between(now, dueDate); //     weeks between the two dates
         double value = 0;
-        if (countWeekend) //                                                            account for weekend
+        if (countWeekend) //                                                           account for weekend
             daysBetween -= (weeks * 2);
         
-        if (daysBetween <= 0) //                                                        lowk not sure I think its to make sure the value is positive maybe?
+        if (daysBetween <= 0) //                                                       lowk not sure I think its to make sure the value is positive maybe?
             daysBetween = 1;
         
-        if (pagesLeft <= 0) { //                                                        if the book is finished print this.
+        if (pagesLeft <= 0) { //                                                       if the book is finished print this.
             System.out.println("No pages left — you're already finished or up to date.");
 
         } else { 
@@ -363,7 +380,11 @@ public class Runner {
         }
         return value;
     }
-    //capitalizes most words in a title.
+    /**capitalizes most words in a title, will not capitalize when abiding by MLA Standard Format
+     * @param str the string to capitalize
+     * @return {@code str} capitalized.
+     * @see #BookList()
+    */
     private static String capitalize(String str) {
         //protection against blanks
         if (str.isBlank())
@@ -378,7 +399,13 @@ public class Runner {
         }
         return String.join(" ", words);
     }
-    //returns the index
+    /**Finds a char in a {@code String[]} array.
+     * @param words a String[] array, must be more than 0.
+     * @param option a char to be found in the String.
+     * This method is only used once.
+     * @throws -1 if the value cannot be found, or if the {@code #words String[]} array is empty.
+     * @return the index of {@code option} in {@code words}
+    */
     private static int find(String[] words, char option) {
         if (words.length > 0) {
             for (int i = 0; i < words.length; i++) {
@@ -389,24 +416,28 @@ public class Runner {
         return -1;
     }
 
-    //makes new book objects
+    /**makes new {@link Book} objects*/
     private static void BookNew() {
         //header
         System.out.println("New book:");
         //Arrays and variables
-        String[] requests = {"Title", "Author", "Series (optional)", "Pages"};
+        String[] requests = {"Title", "Author", "Series (optional)", "Pages", "Note (optional)"};
         int Rlength = requests.length;
         String[] responses = new String[Rlength];
         boolean emptySeries = false;
+        boolean emptyNote = false;
         //loop
         //asks for an input from requests, checks its valid, continues if it is.
         for (int i = 0; i < Rlength; i++) {
             System.out.print(requests[i] + ": ");
             responses[i] = Word.nextline();
-            if (i == 2 && responses[i].isBlank()) {
+            if (i == 2 && responses[2].isBlank()) {
                 emptySeries = true;
                 continue;
-            } else if (i >= 3) {
+            } else if (i == 4 && responses[4].isBlank()) {
+                emptyNote = true;
+                continue;
+            } else if (i == 3) {
                 if (responses[i].isBlank()) {
                     System.out.println("Pages cannot be blank. Please try again.");
                     i--;
@@ -416,7 +447,7 @@ public class Runner {
                     i--;
                     continue;
                 }
-            } else if (responses[i].isBlank() && i != 2) {
+            } else if (responses[i].isBlank() && i != 2 && i != 4) {
                 System.out.println("Invalid input. Please try again.");
                 i--;
                 continue;
@@ -431,12 +462,22 @@ public class Runner {
         String author = responses[1];
         String series = responses[2];
         int pages = Integer.parseInt(responses[3]);
-        if (emptySeries)
-            books.add(new Book(ID, title, author, pages));
-        else
-            books.add(new Book(ID, title, author, series, pages));
+        String note = responses[4];
+        if (emptySeries) {
+            if (emptyNote)
+                books.add(new Book(ID, title, author, "None", pages, "None"));
+            else
+                books.add(new Book(ID, title, author, "None", pages, note));
+        } else {
+            if (emptyNote)
+                books.add(new Book(ID, title, author, series, pages, "None"));
+            else
+                books.add(new Book(ID, title, author, series, pages, note));
+        }
+
+
     }
-    //lists books with the assistance of listB
+    /**lists books with the assistance of listB*/
     private static void BookList() {
         int a = ListB();
         if (a == -1)
@@ -444,7 +485,7 @@ public class Runner {
         int book;
         while (true) {
             if (a == -1) {
-                book = Word.nextInt("","Enter a number. Please try again.",-1, books.size() + 1) - 1;
+                book = Word.nextInt("", "Enter a number. Please try again.",-1, books.size() + 1) - 1;
             } else
                 book = a;
             if (book < 0)
@@ -457,38 +498,50 @@ public class Runner {
              a = -1;
         }
     }
-    //finds the nextID that hasnt been used, by minimum.
+    /**finds the nextID that hasnt been used, by minimum.
+     * @returns {@code long} ID.
+     * 
+    */
     private static long findNextID() {
-        // If no books, start with ID 1
+        //If no books, start with ID 1
         if (books.isEmpty())
             return 1;
         //Ooooo a data stream
         long[] ids = books.stream().mapToLong(Book::getID).toArray();
         Arrays.sort(ids);
         
-        // Check for gaps in the sequence
+        //Check for gaps in the sequence
         for (int i = 0; i < ids.length - 1; i++) {
             if (ids[i + 1] - ids[i] > 1) {
                 return ids[i] + 1;
             }
         }
-        // No gaps found, return the next ID after the highest
+        //No gaps found, return the next ID after the highest
         return ids[ids.length - 1] + 1;
     }
-    //only displays 21 books at one time, consistent increments.
-    //Will pause the display at 21 so you can choose a book you see at the current moment.
-    //if it is paused, and you type a number on screen, it returns that number.
-    private static int ListB() {
-        System.out.println("Books:");
-        if (books.isEmpty()) {
-            System.out.println("No books to display, try adding some!");
-            return -1;
-        }
-        int counter = 0;
-        int times = 0;
+    /**only displays 23 {@link #books} at one time, consistent increments.
+    *Will pause the display at 23 so you can choose a book you see at the current moment.
+    *if it is paused, and you type a number on screen, it returns that number.
+    *Prints books, as well as the percent complete.
+    *Maybe in a later version I'll add settings that can turn off percents, and features like that.
+    @see BookArray
+    @see #ListB()
+    */
+    private static int PrintB() {
+        int counter = 0, times = 0;
+        ArrayList<BookArray> arrayB = new ArrayList<>();
         for (int i = 0; i < books.size(); i++) {
-            System.out.println((i + 1) + ". " + books.get(i).getTitle() + " by " + books.get(i).getAuthor());
+            Book c = books.get(i);
+            arrayB.add(new BookArray(c, i));
+        }
+        //find median
+        int median = arrayB.stream()
+                        .mapToInt(a -> a.GLBN())
+                        .max().getAsInt() + 5;
+        for (BookArray b : arrayB) {
+            //counter increments until it = r, then it resets, times increases, a hit enter to continue is flashed, then it continues printing.
             int r = 23;
+            System.out.println(b.toString(true,median));
             if (times == 0)
                 r = 21;
             if (counter == r) {
@@ -507,7 +560,24 @@ public class Runner {
         }
         return -1;
     }
-    //A version of ListB that is more customizable, used for a list of texts.
+    /**Logic is in {@link #PrintB()}.
+    @return -1 if no numbers are typed by the user, or an index of {@link #books} if possible.
+    @see #ListB(ArrayList, String)
+    @see #ListA(ArrayList, String)
+    @see #BookList()
+    @see #PrintB(int)
+    */
+    private static int ListB() {
+        System.out.println("Books:");
+        if (books.isEmpty()) {
+            System.out.println("No books to display, try adding some!");
+            return -1;
+        }
+        return PrintB();
+    }
+    /**A version of ListB that is more customizable, used for a list of texts.
+     * @see #ListB() for more details
+    */
     private static int ListB(ArrayList<String> books, String term) {
         System.out.println(term +":");
         int counter = 0;
@@ -533,7 +603,10 @@ public class Runner {
         }
         return -1;
     }
-    //used to display series by books
+    /**used to display series by books
+     * @see #ListB() for more details
+     * @see #BookSeries() for use.
+    */
     private static void ListA(ArrayList<Book> t, String term) {
         System.out.println(term +":");
         int counter = 0;
@@ -556,7 +629,9 @@ public class Runner {
             counter++;
         }
     }
-    //Used to edit the number of pages complete in a book
+    /**Used to edit the number of pages complete in a book
+    * @see #BookMore() 
+    */
     private static void BookEdit() {
         int a = ListB();
         if (a == -1)
@@ -577,7 +652,7 @@ public class Runner {
             return;
         }
     }
-    //Used to edit the other data fields
+    /**Used to edit the other data fields, excluding {@link Book#getPagesDone()}. */
     private static void BookMore() {
         int a = ListB();
         String menu = """
@@ -586,20 +661,21 @@ public class Runner {
                 [A]uthor
                 [S]eries
                 [P]ages
+                [N]ote
                 [D]elete
                 Use other edit for pages done
                 [Q]uit
                 """;
-        String[] wordTypes = {"title","author","series","pages"};
+        String[] wordTypes = {"title", "author", "series", "pages", "note"};
 
-        // if its -1, then it still needs a real book value.
+        //if its -1, then it still needs a real book value.
         //find book
         if (a == -1)
             System.out.println("Type a number to edit a book or hit enter to escape.");
         int book;
         while (true) {
             if (a == -1) {
-                book = Word.nextInt("","Invalid choice. Please try again.", -1, books.size() + 1) - 1;
+                book = Word.nextInt("", "Invalid choice. Please try again.", -1, books.size() + 1) - 1;
                 
                 if (book < 0)
                     return;
@@ -610,7 +686,7 @@ public class Runner {
         }
         char option = ' ';
         //define which characteristic
-        String prompt; // Initialize prompt to avoid uninitialized variable error
+        String prompt; //Initialize prompt to avoid uninitialized variable error
         String temp;
         while (true) {
             temp = Word.nextline();
@@ -672,6 +748,7 @@ public class Runner {
             case 'p' -> books.get(book).setPages((int)Integer.valueOf(a1));
         }
     }
+    /**Lists {@link Book} objects by their {@link Book#getSeries()} values. */
     private static void BookSeries() {
         //define series
         ArrayList<String> series = new ArrayList<>();
@@ -693,7 +770,7 @@ public class Runner {
         int seriesChoice;
         while (true) {
             if (a == -1) {
-                seriesChoice = Word.nextInt("","Invalid choice. Please try again.", -1, series.size() + 1) - 1;
+                seriesChoice = Word.nextInt("", "Invalid choice. Please try again.", -1, series.size() + 1) - 1;
                 
                 if (seriesChoice < 0)
                     return;
