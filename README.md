@@ -5,6 +5,9 @@ A basic terminal-based tracker for reading books. Uses CSVs.
 This is a simple CSV manager, basically. The Java program creates "Book" objects, which are stored in a CSV. This program runs on Windows, Mac, and Linux environments.
 If you edit the CSV, it doesn't care. This program was made as a fun project, mostly.
 
+Update: As of March 23, there is now Java Documentation on this! This was not fun to make but also was. You can find it in `Documentation`. To access documentation, open  `all-classes-index.html` to start.
+This project will most likely no longer be updated, as of March 23. There is no argument support for the program, all inputs are done with Scanners.
+
 ## Features
 
 - Make a new book (New book)
@@ -22,6 +25,7 @@ If you edit the CSV, it doesn't care. This program was made as a fun project, mo
 - Typos and incorrect keys are caught automatically.
 - If you accidentally enter a menu from the main menu, you can hit enter to exit.
 - It has an installer.
+- Can be ran with `java -jar src\Book-Tracker.jar`, or with the specified `runMe` files.
 
 If you have any questions, you can reach out to me at **<olliessmith2910@gmail.com>**.
 
@@ -30,4 +34,4 @@ If you have any questions, you can reach out to me at **<olliessmith2910@gmail.c
 You can use the `.exe` installer or clone the project to your desired location with git. If you're on a system that can't run `.bat` or `.exe` files, you can use the `runMe.sh` bash script instead.
 If you need to uninstall the program, you can just delete the folder, or use the uninstall script located in the install location, assuming you used the `.exe` installer.
 
-Version 3.2 Book Tracker Chief Guy
+Version 5.0 Book Tracker Chief Guy
