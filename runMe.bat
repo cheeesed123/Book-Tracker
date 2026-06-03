@@ -1,8 +1,6 @@
 @echo off
-:: --- WINDOWS BATCH SECTION ---
 if "%~1"=="1" ( 
     echo Restart successful!
-    echo:
+    echo.
 )
-java -jar  src\Book-Tracker.jar
-::pause
+"%~dp0runtime\bin\java" -jar src\Book-Tracker.jar

@@ -34,4 +34,4 @@ If you have any questions, you can reach out to me at **<olliessmith2910@gmail.c
 You can use the `.exe` installer or clone the project to your desired location with git. If you're on a system that can't run `.bat` or `.exe` files, you can use the `runMe.sh` bash script instead.
 If you need to uninstall the program, you can just delete the folder, or use the uninstall script located in the install location, assuming you used the `.exe` installer.
 
-Version 5.0 Book Tracker Chief Guy
+Version 6.3 Book Tracker Chief Guy
