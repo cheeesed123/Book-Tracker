@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Book Tracker"
-#define MyAppVersion "6.3"
+#define MyAppVersion "6.5"
 #define MyAppPublisher "Chief Guy"
 #define MyAppURL "https://github.com/cheeesed123"
 #define MyAppExeName "runMe.bat"

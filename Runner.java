@@ -28,7 +28,7 @@ public class Runner {
     public static void main(String[] args){
         String message = """
                 Welcome to book tracker.
-                Book Tracker Version 6.3
+                Book Tracker Version 6.5
                 Also thank you for using this, this took me a lot of work.
 
                 """;
@@ -557,8 +557,10 @@ public class Runner {
                 int parsedA;
                 if (Word.isDigit(a)) {
                     parsedA = Integer.parseInt(a);
-                    if (parsedA > 0 && parsedA < books.size() + 1)
+                    if (parsedA > 0 && parsedA < books.size() + 1) {
+                        Word.word.nextLine();
                         return parsedA - 1;
+                    }
                 }
             }
             counter++;
@@ -703,13 +705,13 @@ public class Runner {
                 continue;
             }
             //incorrect option protection
-            if (!"taspdq".contains(String.valueOf(option))) {
+            if (!"taspdqn".contains(String.valueOf(option))) {
                 System.out.println("Invalid choice. Please try again.");
                 continue;
             }
             break;
         }
-        if ("tas".contains(String.valueOf(option)))
+        if ("tasn".contains(String.valueOf(option)))
             prompt = "New " + wordTypes[find(wordTypes, option)] + ": ";
         else if (option == 'p')
             prompt = "New pages value: ";
@@ -742,7 +744,7 @@ public class Runner {
                 break;
             }
         }
-        if ("tas".contains(String.valueOf(option)))
+        if ("tasn".contains(String.valueOf(option)))
             System.out.println("New " + wordTypes[find(wordTypes, option)] + " is " + a1);
         else if (option == 'p')
             System.out.println("New pages value is " + a1);
@@ -750,6 +752,7 @@ public class Runner {
             case 't' -> books.get(book).setTitle(a1);
             case 'a' -> books.get(book).setAuthor(a1);
             case 's' -> books.get(book).setSeries(a1);
+            case 'n' -> books.get(book).setNote(a1);
             case 'p' -> books.get(book).setPages((int)Integer.valueOf(a1));
         }
     }
