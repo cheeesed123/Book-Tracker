@@ -43,6 +43,18 @@ if exist %p% (
         del src\Book-Tracker.jar >nul
         cd "..\Book Tracker"
     )
+    if exist "%p%BookTracker.bat" (
+        :: if BookTracker command exist, delete it
+        cd ..\Book-Tracker
+        del BookTracker.bat
+        cd "..\Book Tracker"
+    )
+    if exist "%p%NewFiles\" (
+        :: if an old NewFiles folder exists, delete it
+        cd ..\Book-Tracker
+        rd /s /q NewFiles
+        cd "..\Book Tracker"
+    )
 ) else (
     echo "Book-Tracker doesn't seem to exist yet."
     exit 1
@@ -53,6 +65,7 @@ jlink --no-header-files --no-man-pages --compress=zip-8 --strip-debug --add-modu
 :: grouping new files
 copy runMe.* NewFiles >nul
 copy thanks!.txt NewFiles >nul
+copy BookTracker.bat NewFiles >nul
 move Book-Tracker.jar NewFiles >nul
 echo 40%c% !!    \_/    !!
 move runtime NewFiles >nul
@@ -84,6 +97,7 @@ move thanks!.txt ..\src\ >nul
 echo 90%C% Made with love,
 move runMe.bat .. >nul
 move runMe.sh .. >nul
+move BookTracker.bat .. >nul
 move books.csv ..\lib\ >nul
 move Documentation .. >nul
 move runtime .. >nul

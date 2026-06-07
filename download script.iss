@@ -51,6 +51,7 @@ Source: "{#path}\src\thanks!.txt"; DestDir: "{app}\src"; Flags: ignoreversion is
 Source: "{#path}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#path}\runMe.*"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#path}\logo.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#path}\BookTracker.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
