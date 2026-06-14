@@ -19,6 +19,7 @@ This project will most likely no longer be updated, as of March 23. There is no 
 - Power cycle for program (Cycle)
 - Comma support
 - Quit functionality
+- Terminal use through the command `BookTracker`, assuming you add the project to the PATH environment variable.
 
 ## Tips
 
