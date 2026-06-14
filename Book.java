@@ -73,16 +73,15 @@ public class Book {
         this.dateFinished = dateFinished;
         this.note = note;
     }
+    
     /**appends to CSV
      * This method appends a new {@link Book} object to the end of the file using {@code Files.write()}.
      * @see #writeCSV()
     */
     private void toCSV() {
         try {
-            String IDS = String.valueOf(ID);
-            String pagesS = String.valueOf(pages);
-            String pagesDoneS = String.valueOf(pagesDone);
-            String line = String.join(",", IDS, title, author, series, pagesS, pagesDoneS, dateCreated, dateFinished, note) + "\n";
+            
+            String line = this.toString();
             Files.write(Word.path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         } catch (IOException e) {
             System.out.println("An error occurred while writing to the file.");
@@ -97,11 +96,7 @@ public class Book {
      * @see #toCSV()
      */
     private void writeCSV(){
-        String IDS, pagesS, pagesDoneS;
         try {
-            IDS = String.valueOf(ID);
-            pagesS = String.valueOf(pages);
-            pagesDoneS = String.valueOf(pagesDone);
             List<String> lines = Files.readAllLines(Word.path, StandardCharsets.UTF_8);
             boolean updated = false;
             for (int i = 0; i < lines.size(); i++) {
@@ -112,7 +107,7 @@ public class Book {
                 String IDPart = parts[0].trim();
                 if (String.valueOf(ID).equals(IDPart)) {
                     //replace the line (preserve spacing style)
-                    lines.set(i, String.join(",", IDS, title, author, series, pagesS, pagesDoneS, dateCreated, dateFinished, note) + "\n");
+                    lines.set(i, this.toString());
                     updated = true;
                     break;
                 }
@@ -121,7 +116,7 @@ public class Book {
                 Files.write(Word.path, lines, StandardCharsets.UTF_8);
             } else {
                 //If the record wasn't found, append it to avoid losing the update
-                String line = String.join(",", IDS, title, author, series, pagesS, pagesDoneS, dateCreated, dateFinished, note) + "\n";
+                String line = this.toString();
                 Files.write(Word.path, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
             }
         } catch (IOException e) {
@@ -391,26 +386,23 @@ public class Book {
      * }</pre>
      * Output:
      * <pre> {@code
-     * title by author in the series series with 20 pages, created 1/1/1111, and finished 1/2/1111 is 40% done, with these notes: "note".
+     * 0,title,author,series,20,0,11/11/1111,None,note
      * } </pre>
-     * This method is not ever used.
+     * This method is used as a shorthand.
      * @return {@code String} - the main sentence
      * @see #viewForm()
      * 
     */
     @Override
     public String toString() {
-        String sentence = "";
-        sentence += title;
-        sentence += " by " + author;
-        sentence += " in the " + series;
-        sentence += " series with " + pages + " pages,";
-        sentence += " created " + dateCreated;
-        if (!dateFinished.equals("None")) sentence += ", and finished " + dateFinished;
-        sentence += " is " + getPercent() + "% done";
-        if (!note.isBlank()) sentence += ", with these note: \"" + note + "\"";
-        sentence += ".";
-        return sentence;
+        String IDF = String.valueOf(ID);
+        String titleF = title.replaceAll(",", "&com");
+        String authorF = author.replaceAll(",", "&com");
+        String seriesF = series.replaceAll(",", "&com");
+        String pagesF = String.valueOf(pages);
+        String pagesDoneF = String.valueOf(pagesDone);
+        String noteF = note.replaceAll(",", "&com");
+        return String.join(",", IDF, titleF, authorF, seriesF, pagesF, pagesDoneF, dateCreated, dateFinished, noteF) + "\n";
     }
     /**
      * The main method for viewing books. Is used in {@link Runner#BookList()}

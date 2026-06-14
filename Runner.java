@@ -25,10 +25,10 @@ public class Runner {
      * @param args The runtime arguments, to which there are none.
      * @see #choice()
      * */
-    public static void main(String[] args){
+    public static void main(String[] args) {
         String message = """
-                Welcome to book tracker.
-                Book Tracker Version 6.5
+                Welcome to Book Tracker.
+                Book Tracker Version 6.7
                 Also thank you for using this, this took me a lot of work.
 
                 """;
@@ -70,7 +70,8 @@ public class Runner {
             for (String line : lines) {
                 if (line.trim().equalsIgnoreCase(Word.CSVHEADER) || line.isBlank())
                     continue;
-                String[] parts = line.split(",", Word.CSVVARCOUNT);
+                //convert "&com" to ","
+                String[] parts = Arrays.stream(line.split(",", Word.CSVVARCOUNT)).map(a -> a.replaceAll("&com", ",")).toArray(String[]::new);
                 if (parts.length < 3)
                     continue;
                 ID = Integer.parseInt(parts[0].trim());
@@ -89,10 +90,13 @@ public class Runner {
             }
         } catch (IOException e) {
             System.out.println("An error occurred while writing to the file.");
+            System.exit(1);
         } catch (NumberFormatException e) {
             System.out.println("An error occurred while trying to parse a number, check the CSV.");
+            System.exit(1);
         } catch (Exception e) {
             System.out.println("Something went wrong, we don't know what but it has to do with the CSV.");
+            System.exit(1);
         }
     }
     /**attempts to take the data in the {@link ArrayList} and convert it to the csv.*/
@@ -100,16 +104,7 @@ public class Runner {
         ArrayList<String> lines = new ArrayList<>();
         lines.add(Word.CSVHEADER);
         for (int i = 0; i < books.size(); i++) {
-            long bookID = books.get(i).getID();
-            String title = books.get(i).getTitle();
-            String author = books.get(i).getAuthor();
-            String series = books.get(i).getSeries();
-            int pages = books.get(i).getPages();
-            int pagesDone = books.get(i).getPagesDone();
-            String dateCreated = books.get(i).getDateCreated();
-            String dateFinished = books.get(i).getDateFinished();
-            String note = books.get(i).getNote();
-            lines.add(String.join(",", String.valueOf(bookID), title, author, series, String.valueOf(pages), String.valueOf(pagesDone), dateCreated, dateFinished, note));
+            lines.add(books.get(i).toString());
         }
         try {
             Files.write(Word.path, lines, StandardCharsets.UTF_8);
