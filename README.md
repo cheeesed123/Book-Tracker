@@ -17,6 +17,7 @@ This project will most likely no longer be updated, as of March 23. There is no 
 - Calculates how long it'll take you to read a book by pages per day. (Stats on time)
 - Reset options (Reset zone), which allow you to refresh and reset data.
 - Power cycle for program (Cycle)
+- Comma support
 - Quit functionality
 
 ## Tips
@@ -34,4 +35,4 @@ If you have any questions, you can reach out to me at **<olliessmith2910@gmail.c
 You can use the `.exe` installer or clone the project to your desired location with git. If you're on a system that can't run `.bat` or `.exe` files, you can use the `runMe.sh` bash script instead.
 If you need to uninstall the program, you can just delete the folder, or use the uninstall script located in the install location, assuming you used the `.exe` installer.
 
-Version 6.5 Book Tracker Chief Guy
+Version 6.7 Book Tracker Chief Guy
